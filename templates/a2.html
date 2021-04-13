@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<head>
+    <title>CMSC828D -- A2</title>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/d3-array.v2.min.js"></script>
+    <script src="https://d3js.org/d3-geo.v2.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.js"></script>
+
+    <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        crossorigin="anonymous"
+    />
+</head>
+
+<style>
+    div.tooltip {
+        padding: 10px;
+        font: 16px sans-serif;
+        line-height: 1.3;
+        color: white;
+        background: black;
+        pointer-events: none;
+    }
+    body {
+        font: 14px sans-serif;
+        background-color: white;
+    }
+</style>
+
+<body>
+
+<div id="page" class="container-fluid pt-2 px-5" style="white-space: nowrap; visibility: hidden;">
+    <div class="row">
+        <div class="col"><h3>A2: Fatal Police Shootings in the United States</h3></div>
+        <button type="button" class="btn btn-info" onclick="location.href='/'">View Assignment 3</button>
+    </div>
+    <div class="row">
+        <div class="col" id="date-text"></div><div class="col" id="total-text"></div><div class="col"></div><div class="col"></div>
+    </div>
+    <div class="row flex-nowrap">
+        <div>
+            <div id="map"></div>
+            <div id="graph"></div>
+        </div>
+        <div>
+            <div id="filter" class="p-3">
+                <h4>Filter options:</h4>
+                <div class="form-group">
+                    <h6><strong>Race:</strong>&nbsp&nbsp
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "race", "feature": "Black"}' checked>
+                        <label class="form-check-label" for="">Black</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "race", "feature": "Native"}' checked>
+                        <label class="form-check-label" for="">Native</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "race", "feature": "Hispanic"}' checked>
+                        <label class="form-check-label" for="">Hispanic</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "race", "feature": "White"}' checked>
+                        <label class="form-check-label" for="">White</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "race", "feature": "Asian"}' checked>
+                        <label class="form-check-label" for="">Asian</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "race", "feature": "Other"}' checked>
+                        <label class="form-check-label" for="">Other</label>
+                    </div>
+                    </h6>
+                </div>
+
+                <div class="form-group">
+                    <h6><strong>Gender:</strong>&nbsp&nbsp
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox"  data-value='{"attribute": "gender", "feature": "M"}' checked>
+                        <label class="form-check-label" for="">Male</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox"  data-value='{"attribute": "gender", "feature": "F"}' checked>
+                        <label class="form-check-label" for="">Female</label>
+                    </div>
+                    </h6>
+                </div>
+
+                <div class="form-group">
+                    <h6><strong>Age Group:</strong>&nbsp&nbsp
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "age_group", "feature": "(<18)"}' checked>
+                        <label class="form-check-label" for="">Under 18</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "age_group", "feature": "(18-34)"}' checked>
+                        <label class="form-check-label" for="">18 - 34</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "age_group", "feature": "(35-44)"}' checked>
+                        <label class="form-check-label" for="">35 - 44</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "age_group", "feature": "(45-64)"}' checked>
+                        <label class="form-check-label" for="">45 - 64</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "age_group", "feature": "(>64)"}' checked>
+                        <label class="form-check-label" for="">65 +</label>
+                    </div>
+                    </h6>
+                </div>
+
+                <div class="form-group">
+                    <h6><strong>Body Camera:</strong>&nbsp&nbsp
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "body_camera", "feature": "true"}' checked>
+                        <label class="form-check-label" for="">Police wore body camera</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "body_camera", "feature": "false"}' checked>
+                        <label class="form-check-label" for="">No body camera present</label>
+                    </div>
+                    </h6>
+                </div>
+
+                <div class="form-group">
+                    <h6><strong>Mental Illness:</strong>&nbsp&nbsp
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "signs_of_mental_illness", "feature": "true"}' checked>
+                        <label class="form-check-label" for="">Showed mental illness</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "signs_of_mental_illness", "feature": "false"}' checked>
+                        <label class="form-check-label" for="">No signs of mental illness</label>
+                    </div>
+                    </h6>
+                </div>
+
+                <div class="form-group">
+                    <h6><strong>Fleeing Suspect:</strong>&nbsp&nbsp
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "flee", "feature": "Foot"}' checked>
+                        <label class="form-check-label" for="">On foot</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "flee", "feature": "Car"}' checked>
+                        <label class="form-check-label" for="">In a car</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "flee", "feature": "Other"}' checked>
+                        <label class="form-check-label" for="">By other means</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" data-value='{"attribute": "flee", "feature": "Not fleeing"}' checked>
+                        <label class="form-check-label" for="">Did not flee</label>
+                    </div>
+                    </h6>
+                </div>
+            </div>
+            <div id="detail"  class="p-3">
+                <h4>Shootings per attribute:</h4>
+                <table class="table table-sm">
+                    <tr><td class="align-middle">Race</td><td><div id="race-vis"></div></td></tr>
+                    <tr><td class="align-middle">Gender</td><td><div id="gender-vis"></div></td></tr>
+                    <tr><td class="align-middle">Age Group</td><td><div id="age-vis"></div></td></tr>
+                    <tr><td class="align-middle">Body Camera</td><td><div id="bodycam-vis"></div></td></tr>
+                    <tr><td class="align-middle">Mental Illness</td><td><div id="mental-vis"></div></td></tr>
+                    <tr><td class="align-middle">Fleeing Suspect</td><td><div id="flee-vis"></div></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+</body>
+<script>
+    const height = 720,
+            mapHeight = 500,
+            mapWidth = 850,
+            graphHeight = height - mapHeight,
+            graphWidth = mapWidth,
+            graphMargin = {top: 40, right: 50, bottom: 50, left: 70};
+
+    var parseDate = d3.timeParse("%Y-%m-%d");
+    var formatDate = d3.timeFormat("%Y-%m-%d");
+
+    var mn, mx, startDate, endDate, filterData, binRanges, binCounts, dateBinRange;
+
+    var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    // Call initialize() to initialize the page with our default query.
+    initialize().then(data => {
+        mn = data.properties.stateMin;
+        mx = data.properties.stateMax;
+        startDate = data.properties.dateMin;
+        endDate = data.properties.dateMax;
+
+        checkboxEventListener();
+        createMap(data);
+        createBrushGraph(data);
+        createBars(data);
+
+        document.getElementById('date-text').innerHTML = "<h5>Dates: " + startDate + " to " + endDate + "</h5>";
+        document.getElementById('total-text').innerHTML = "<h5>Total Shootings: " + data.totalShootings[0].count + " people killed</h5>";
+        document.getElementById("page").style.visibility = "visible"; // allows all DOM elements to load at the same time
+    });
+
+    /**
+     * Removes the content inside of the given DOM element
+     * */
+    function clearNode(identifier) {
+        const myNode = document.getElementById(identifier);
+        myNode.textContent = '';
+    }
+
+    /**
+     * Initializes the page.
+     * */
+    async function initialize() {
+        filterData = {};
+        $('input[type=checkbox]').each(function () {
+            if (this.checked) {
+                let val = $(this).data('value')
+                filterData[val.attribute] ? filterData[val.attribute].push(val.feature) : filterData[val.attribute] = [val.feature];
+            }
+        });
+
+        let url = 'http://localhost:8000/get-server-data?schema=a2&table=shootings&event=initialize' + '&filter-data=' + JSON.stringify(filterData);
+        let response = await fetch(url, {"credentials": "same-origin"})
+        if (response.ok) {
+            let data = await
+                response.json()
+            return data
+        }
+        return []
+    }
+
+    /**
+     * Creates the choropleth map SVG.
+     * */
+    function createMap(data) {
+        clearNode('map');
+        let geoJSON = data.geoJSON;
+        let countPerState = data.countPerState;
+        if (countPerState.length === 0) {
+            mn = 0; mx = 0;
+        } else {
+            mn = data.properties.stateMin;
+            mx = data.properties.stateMax;
+        }
+
+        var map = d3.select("#map").append("svg")
+            .attr("width", mapWidth)
+            .attr("height", mapHeight);
+
+        var projection = d3.geoAlbersUsa()
+            .scale([900])
+            .translate([mapWidth/2 + 40, mapHeight/2 - 10]);
+
+        var path = d3.geoPath()
+            .projection(projection);
+
+        var states = map.append("g")
+            .attr("class", "mapGroup");
+
+        var paths = states.append("g")
+            .attr("class", "usMap")
+            .attr("transform", "translate(0,0)");
+
+        var linear = d3.scaleLinear()
+            .domain([mn, mx])
+            .range(['#ffc8c8', '#9b0000']);
+
+        // Creates a legend using a linear color scale
+        var legend = d3.legendColor()
+            .labelFormat(d3.format("d"))
+            .shapeWidth(30)
+            .cells(9)
+            .orient('vertical')
+            .scale(linear)
+            .title("Shootings per State")
+            .titleWidth(150);
+
+        // Adds the legend to the map
+        states.append("g")
+            .attr("class", "legend")
+            .attr("transform", "translate(20,40)")
+            .style("font-size", "11px")
+            .call(legend);
+
+        // Add a custom legend to indicate states with 0 shootings
+        states.append('rect')
+            .attr('x', 20)
+            .attr('y', 230)
+            .attr('width', "30")
+            .attr('height', "15")
+            .attr('fill', 'black');
+        states.append('text')
+            .attr('x', 60)
+            .attr('y', 241)
+            .style("font-size", "11px")
+            .text("No shootings");
+
+        // Loop through each state in GeoJSON
+        for (var j = 0; j < geoJSON.features.length; j++) {
+            var geoState = geoJSON.features[j].properties.name;
+            geoJSON.features[j].properties.value = 'No'; // default value is 'No' shootings
+
+            // Loop through each state from query
+            for (var i = 0; i < countPerState.length; i++) {
+                var stateName = countPerState[i].state; // state name
+                var stateShootingCount = countPerState[i].count; // shootings per state
+                if (stateName === geoState) {
+                    geoJSON.features[j].properties.value = stateShootingCount; // copy value into GeoJSON
+                    break;
+                }
+            }
+        }
+
+        // Pattern to fill path when hovering
+        map.append("defs")
+            .append("pattern")
+                .attr("id", "stripes")
+                .attr("patternUnits", "userSpaceOnUse")
+                .attr("patternTransform", "rotate(60)")
+                .attr("width", "8")
+                .attr("height", "8")
+            .append("rect")
+                .attr("id", "pattern")
+                .attr("width", "6")
+                .attr("height", "8")
+                .attr("transform", "translate(0,0)");
+
+        // Assigns data to each state and adds a tooltip when hovering the state
+        paths.selectAll("path")
+            .data(geoJSON.features)
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .attr("id", function(d) { return d.properties.name.replace(/\s/g, "") + "Path" })
+            .style("stroke", "white")
+            .style("stroke-width", "1")
+            .style("fill", function(d) { return linear(d.properties.value) })
+            .text(function(d) { return d.properties.name })
+            .on("mousemove", (m, d) => {
+                d3.select("#"+d.properties.name.replace(/\s/g, "") + "Path")
+                    //.style("opacity", .7);
+                    .style("fill", function (d) {
+                        map.select("pattern")
+                            .attr("fill", linear(d.properties.value));
+                        return "url(#stripes)";
+                    });
+                tooltip.transition()
+                    .style("opacity", .9);
+                tooltip.html(d.properties.name + "<br>" + d.properties.value + " Shootings")
+                    .style("left", (d3.pointer(event)[0] + 40)+'px')
+                    .style("top", (d3.pointer(event)[1] + 70)+'px');
+            })
+            .on("mouseout", (m, d) => {
+                d3.select("#"+d.properties.name.replace(/\s/g, "") + "Path")
+                    //.style("opacity", 1);
+                    .style("background", "black")
+                    .style("fill", linear(d.properties.value));
+                tooltip.transition()
+                    .style("opacity", 0);
+            })
+    }
+
+    /**
+     * Updates the map SVG by clearing the node and calling createMap() with the new data.
+     * */
+    function updateMap(data) {
+        clearNode('map');
+        createMap(data);
+    }
+
+    /**
+     * Creates the histogram (bar graph SVG) and brush filter.
+     * */
+    function createBrushGraph(data) {
+        data.properties.dateBinRange.map(d => {
+            d.rangeMin = new Date(d.rangeMin);
+            d.rangeMax = new Date(d.rangeMax);
+        });
+        data.properties.dateBinRange.map(d => {
+            d.rangeMin = new Date(d.rangeMin);
+            d.rangeMax = new Date(d.rangeMax);
+        });
+
+        binRanges = data.properties.dateBinRange;
+        binCounts = data.properties.dateBinCount;
+        dateBinRange = data.properties.dateBinRange;
+
+        const graph = d3.select("#graph").append("svg")
+            .attr("id", "graph")
+            .attr("width", graphWidth)
+            .attr("height", graphHeight);
+
+        let x = d3.scaleLinear()
+            .domain([dateBinRange[0].rangeMin, dateBinRange[dateBinRange.length - 1].rangeMax])
+            .range([graphMargin.left, graphWidth - graphMargin.right]);
+
+        let y = d3.scaleLinear()
+            .domain([0, d3.max(binCounts)]).nice()
+            .range([graphHeight - graphMargin.bottom, graphMargin.top]);
+
+        let xAxis = g => g
+            .attr("transform", `translate(0,${graphHeight - graphMargin.bottom})`)
+            .call(d3.axisBottom(x).ticks(binCounts.length/6))
+            .selectAll("text")
+            .attr("y", 10)
+            .attr("x", 0)
+            .attr("dx", -25)
+            .attr("transform", "rotate(0)")
+            .style("text-anchor", "start")
+            .text(function (d) {
+                let s = new Date(d).toDateString().split(" ");
+                return s[1] +" "+ s[3];
+                //return new Date(d).getMonth() + "/ " + new Date(d).getFullYear();
+            });
+
+        let yAxis = g => g
+          .attr("transform", `translate(${graphMargin.left},0)`)
+          .call(d3.axisLeft(y).ticks(10));
+
+        graph.append("g")
+            .attr("fill", "steelblue")
+            .selectAll("rect")
+            .data(dateBinRange)
+            .join("rect")
+            .attr("x", d => x(d.rangeMin) + 1)
+            .attr("width", d => Math.max(0, x(d.rangeMax) - x(d.rangeMin) - 1))
+            .attr("y", (d,i) => y(binCounts[i]))
+            .attr("height", (d,i) => y(0) - y(binCounts[i]));
+        /*
+        graph.append("g")
+            .attr("id", "red-bars")
+            .attr("fill", "red")
+            .selectAll("rect")
+            .data(dateBinRange)
+            .join("rect")
+            .attr("x", d => x(d.rangeMin) + 1)
+            .attr("width", d => Math.max(0, x(d.rangeMax) - x(d.rangeMin) - 1))
+            .attr("y", (d,i) => y(binCounts[i]))
+            .attr("height", (d,i) => y(0) - y(binCounts[i]));
+        */
+
+        graph.append("g")
+            .call(xAxis);
+
+        graph.append("g")
+            .call(yAxis);
+
+        /** Graph titles and axes labels **/
+
+        let graphTitle = "Total Police Shootings per Month (2015 - 2020)";
+        let graphW = graphWidth - graphMargin.left - graphMargin.right;
+        let graphH = graphHeight - graphMargin.top - graphMargin.bottom;
+
+        graph.append("text")
+            .attr("class", "title")
+            .attr("text-anchor", "center")
+            .attr("x", graphW/2 - 30)
+            .attr("y", 0)
+            .attr("dy", ".75em")
+            .attr("dx", - graphMargin.left)
+            .style("font-size", "16px")
+            .text(graphTitle);
+
+        graph.append("text")
+            .attr("class", "x label")
+            .attr("text-anchor", "center")
+            .attr("x", graphWidth/2 - graphMargin.right + 10)
+            .attr("y", graphHeight - graphMargin.bottom/2 + 10)
+            .attr("dy", ".75em")
+            .text("Date (Month)");
+
+        graph.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "center")
+            .attr("x", -graphH)
+            .attr("y", graphMargin.left/3)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text("Frequency");
+
+        //Brush Filter for choosing date ranges
+        function resizePath(d) {
+            const e = +(d.type === 'e');
+            const x = e ? 1 : -1;
+            const y = ((graphHeight - graphMargin.bottom) / 2) - 15;
+            return `M${0.5 * x},${y}A6,6 0 0 ${e} ${6.5 * x},${y + 6}V${2 * y - 6}A6,6 0 0 ${e} ${0.5 * x},${2 * y}ZM${2.5 * x},${y + 8}V${2 * y - 8}M${4.5 * x},${y + 8}V${2 * y - 8}`;
+        }
+
+        let brushHandle = (g, selection) => g
+            .selectAll(".handle--custom")
+            .data([{type: "w"}, {type: "e"}])
+            .join(enter => enter.append("path")
+                .attr("class", "handle--custom")
+                .attr("fill", "#fff")
+                .attr("fill-opacity", 0.8)
+                .attr("stroke", "#000")
+                .attr("cursor", "ew-resize")
+                .attr("d", resizePath)
+            )
+            .attr("display", selection === null ? "none" : null)
+            .attr("transform", selection === null ? null : (d, i) => `translate(${selection[i]},${0})`)
+
+        var brush = d3.brushX()
+            .extent([[graphMargin.left, graphMargin.top], [graphWidth - graphMargin.right, graphHeight - graphMargin.bottom]])
+            .on("brush end", brushing)
+            // .on("end", brushEnd);
+
+        // Updating the visualizations in real time (on brushing)
+        function brushing({selection}) {
+            d3.select(this).call(brushHandle, selection);
+            let sx = selection.map(x.invert),
+                start = formatDate(sx[0]+18000000), // fix offset in date objects
+                end = formatDate(sx[1]),
+                d = {"start": start, "end": end};
+            brushGraphChanged(d).then(data => {
+                startDate = data.properties.dateMin;
+                endDate = data.properties.dateMax;
+                document.getElementById('date-text').innerHTML = "<h5>Dates: " + startDate + " to " + endDate + "</h5>";
+                document.getElementById('total-text').innerHTML = "<h5>Total Shootings: " + data.totalShootings[0].count + " people killed</h5>";
+                updateBars(data);
+                updateMap(data);
+                //updateGraph(data, selection)
+            });
+        }
+
+        // We can update the visualizations on brush end to reduce lag (commented out as an option).
+        /*
+        function brushEnd({selection}) {
+            d3.select(this).call(brushHandle, selection);
+            let sx = selection.map(x.invert),
+                start = formatDate(sx[0]),
+                end = formatDate(sx[1]);
+            let d = {"start": start, "end": end}
+            //console.log('start date: ' + start + ', end date: ' + end);
+            brushGraphChanged(d).then(data => {
+                updateBars(data);
+                updateMap(data);
+            });
+        }
+        */
+
+        graph.append("g")
+            .call(brush)
+            .call(brush.move, [x(x.domain()[0]), x.range()[1]]) // brush default covers entire graph
+            .call(g => g.select(".overlay")
+                .datum({type: "selection"})
+                .on("mousedown touchstart", brushReset));
+
+        // Moves the brush when clicking outside the current brush area on the graph
+        function brushReset(event) {
+            const dx = ((x.range()[1]) - x(x.domain()[0]))/3; // uses a fixed graphWidth when recentering
+            const [[cx]] = d3.pointers(event);
+            const [x0, x1] = [cx - dx / 2, cx + dx / 2];
+            const [X0, X1] = x.range();
+            d3.select(this.parentNode)
+                .call(brush.move, x1 > X1 ? [X1 - dx, X1] : x0 < X0 ? [X0, X0 + dx] : [x0, x1]);
+          }
+
+    }
+
+    /*
+    function updateGraph(data, s) {
+        binCounts = data.statsByDate.shootings.dateBinCount;
+
+        let x = d3.scaleLinear()
+            .domain([dateBinRange[0].rangeMin, dateBinRange[dateBinRange.length - 1].rangeMax])
+            .range([graphMargin.left, graphWidth - graphMargin.right]);
+
+        let y = d3.scaleLinear()
+            .domain([0, d3.max(binCounts)]).nice()
+            .range([graphHeight - graphMargin.bottom, graphMargin.top]);
+
+        d3.select("#red-bars").selectAll("rect")
+            .data(binRanges)
+            .join("rect")
+            .attr("x", d => x(d.rangeMin) + 1)
+            .attr("width", d => Math.max(0, x(d.rangeMax) - x(d.rangeMin) - 1))
+            .attr("y", (d,i) => y(binCounts[i]))
+            .attr("height", (d,i) => y(0) - y(binCounts[i]));
+    }
+    */
+
+    /**
+     * Asynchronous function that gets called while the brush filter is moving to fetch new data
+     * and update each visualization accordingly.
+     * */
+    async function brushGraphChanged(params) {
+        startDate = params.start;
+        endDate = params.end;
+
+        let url = 'http://localhost:8000/get-server-data?schema=a2&table=shootings&event=brush&date-min=' + startDate + '&date-max=' + endDate
+            + '&filter-data=' + JSON.stringify(filterData);
+
+        let response = await fetch(url, {"credentials": "same-origin"});
+            if (response.ok) {
+                let data = await
+                response.json();
+            return data;
+        }
+        return [];
+    }
+
+    /**
+     * Creates the group of single stacked bars (each one is a separate SVG).
+     * */
+    function createBars(data) {
+        var rowH = 55, rowW = 480, raceVis, genderVis, ageVis, bodycamVis, mentalVis, fleeVis,
+                raceObject = {}, genderObject = {}, ageObject = {}, bodycamObject = {}, mentalObject = {}, fleeObject = {},
+                raceCount = [], genderCount = [], ageCount = [], bodycamCount = [], mentalCount = [], fleeCount = [];
+
+        data.barCounts.race.map(d => { raceCount.push(d.count) });
+        data.barCounts.gender.map(d => { genderCount.push(d.count) });
+        data.barCounts.age.map(d => { ageCount.push(d.count) });
+        data.barCounts.bodyCamera.map(d => { bodycamCount.push(d.count) });
+        data.barCounts.mentalIllness.map(d => { mentalCount.push(d.count) });
+        data.barCounts.flee.map(d => { fleeCount.push(d.count) });
+
+        let colors = ['#CA472F', '#9DD865', '#6F4E7C', '#FFA056', '#0B84A5', '#F6C860']
+
+        let count = data.barCounts.maxCount[0].total;
+
+        // Normalize the widths to fit the desired row width
+        function norm(result) {
+            return result * (rowW / count);
+        }
+
+        function sum(array, start, end) {
+            let total = 0;
+            for (let i = start; i < end; i++) total += array[i];
+            return total;
+        }
+
+        data.barCounts.race.forEach(function(e) { raceObject[e.race] = e.count });
+        data.barCounts.gender.forEach(function(e) { genderObject[e.gender] = e.count });
+        data.barCounts.age.forEach(function(e) { ageObject[e.age_group] = e.count });
+        data.barCounts.bodyCamera.forEach(function(e) { bodycamObject[e.body_camera] = e.count });
+        data.barCounts.mentalIllness.forEach(function(e) { mentalObject[e.signs_of_mental_illness] = e.count });
+        data.barCounts.flee.forEach(function(e) { fleeObject[e.flee] = e.count });
+
+        raceVis = d3.select("#race-vis").append("svg")
+                .attr("height", rowH)
+                .attr("width", rowW);
+        raceVis.append("g").selectAll('rect')
+            .data(raceCount)
+            .enter()
+            .append('rect')
+            .attr('width', function(d) { return norm(d) })
+            .attr('x', function(d, i) { return norm(sum(raceCount, 0, i)) })
+            .attr('fill', function(d, i){ return colors[i] })
+            .attr('y',0)
+            .attr('height', 30);
+        raceVis.append("g")
+            .data(raceCount)
+            .append("text")
+            .text(JSON.stringify(raceObject, null, 1).replace(/[{}"]/g, ''))
+            .attr("text-anchor", "left")
+            .attr("x", 0)
+            .attr("y", 50);
+
+        genderVis = d3.select("#gender-vis").append("svg")
+                .attr("height", rowH)
+                .attr("width", rowW);
+        genderVis.append("g").selectAll('rect')
+            .data(genderCount)
+            .enter()
+            .append('rect')
+            .attr('width', function(d) { return norm(d) })
+            .attr('x', function(d, i) { return  norm(sum(genderCount, 0, i)) })
+            .attr('fill', function(d, i){ return colors[i] })
+            .attr('y',0)
+            .attr('height', 30);
+        genderVis.append("g")
+            .append("text")
+            .text(JSON.stringify(genderObject, null, 1).replace(/[{}"]/g, ''))
+            .attr("text-anchor", "left")
+            .attr("x", 0)
+            .attr("y", 50);
+
+        ageVis = d3.select("#age-vis").append("svg")
+                .attr("height", rowH)
+                .attr("width", rowW);
+        ageVis.append("g").selectAll('rect')
+            .data(ageCount)
+            .enter()
+            .append('rect')
+            .attr('width', function(d) { return norm(d) })
+            .attr('x', function(d, i) { return  norm(sum(ageCount, 0, i)) })
+            .attr('fill', function(d, i){ return colors[i] })
+            .attr('y',0)
+            .attr('height', 30);
+        ageVis.append("g")
+            .append("text")
+            .text(JSON.stringify(ageObject, null, 1).replace(/[{}"]/g, ''))
+            .attr("text-anchor", "left")
+            .attr("x", 0)
+            .attr("y", 50);
+
+        bodycamVis = d3.select("#bodycam-vis").append("svg")
+                .attr("height", rowH)
+                .attr("width", rowW);
+        bodycamVis.append("g").selectAll('rect')
+            .data(bodycamCount)
+            .enter()
+            .append('rect')
+            .attr('width', function(d) { return norm(d) })
+            .attr('x', function(d, i) { return  norm(sum(bodycamCount, 0, i)) })
+            .attr('fill', function(d, i){ return colors[i] })
+            .attr('y',0)
+            .attr('height', 30);
+        bodycamVis.append("g")
+            .append("text")
+            .text(JSON.stringify(bodycamObject, null, 1).replace(/[{}"]/g, ''))
+            .attr("text-anchor", "left")
+            .attr("x", 0)
+            .attr("y", 50);
+
+        mentalVis = d3.select("#mental-vis").append("svg")
+                .attr("height", rowH)
+                .attr("width", rowW);
+        mentalVis.append("g").selectAll('rect')
+            .data(mentalCount)
+            .enter()
+            .append('rect')
+            .attr('width', function(d) { return norm(d) })
+            .attr('x', function(d, i) { return  norm(sum(mentalCount, 0, i)) })
+            .attr('fill', function(d, i){ return colors[i] })
+            .attr('y',0)
+            .attr('height', 30);
+        mentalVis.append("g")
+            .append("text")
+            .text(JSON.stringify(mentalObject, null, 1).replace(/[{}"]/g, ''))
+            .attr("text-anchor", "left")
+            .attr("x", 0)
+            .attr("y", 50);
+
+        fleeVis = d3.select("#flee-vis").append("svg")
+                .attr("height", rowH)
+                .attr("width", rowW);
+        fleeVis.append("g").selectAll('rect')
+            .data(fleeCount)
+            .enter()
+            .append('rect')
+            .attr('width', function(d) { return norm(d) })
+            .attr('x', function(d, i) { return  norm(sum(fleeCount, 0, i)) })
+            .attr('fill', function(d, i){ return colors[i] })
+            .attr('y',0)
+            .attr('height', 30);
+        fleeVis.append("g")
+            .append("text")
+            .text(JSON.stringify(fleeObject, null, 1).replace(/[{}"]/g, ''))
+            .attr("text-anchor", "left")
+            .attr("x", 0)
+            .attr("y", 50);
+    }
+
+    /**
+     * Updates the single stacked bars by clearing each bar node and calling Bars() with the new data.
+     * */
+    function updateBars(data) {
+        clearNode('race-vis');
+        clearNode('gender-vis');
+        clearNode('age-vis');
+        clearNode('bodycam-vis');
+        clearNode('mental-vis');
+        clearNode('flee-vis');
+        createBars(data);
+    }
+
+    /**
+     * Event handler for checkboxes.
+     * */
+    function checkboxEventListener() {
+        $(':checkbox').change(function() {
+            let newFilter = {};
+            $('input[type=checkbox]').each(function () {
+                if (this.checked) {
+                    let val = $(this).data('value')
+                    newFilter[val.attribute] ? newFilter[val.attribute].push(val.feature) : newFilter[val.attribute] = [val.feature];
+                }
+            });
+            filterData = newFilter;
+
+            grabFilteredData(filterData).then(data => {
+                document.getElementById('total-text').innerHTML = "<h5>Total Shootings: " + data.totalShootings[0].count + " people killed</h3>";
+                updateMap(data);
+                updateBars(data);
+            });
+        });
+    }
+
+    /**
+     * Asynchronous function that gets called when a checkbox is checked or unchecked to fetch new data
+     * and update each visualization accordingly.
+     * */
+    async function grabFilteredData() {
+        let url = 'http://localhost:8000/get-server-data?schema=a2&table=shootings&event=checkbox&date-min=' + startDate + '&date-max=' + endDate
+            + '&filter-data=' + JSON.stringify(filterData);
+
+        let response = await fetch(url, {"credentials": "same-origin"});
+            if (response.ok) {
+                let data = await
+                response.json();
+            return data;
+        }
+        return [];
+    }
+
+</script>
