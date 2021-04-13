@@ -33,7 +33,7 @@ Now, open the web page http://127.0.0.1:8000/ with any browser to run the dashbo
 ### Notes
 1. If you have any additional feedback on any part of this process (i.e. setting up the interface, interacting with the vis, etc.) , please include it in the last prompt on the google form labeled: "_Please provide any additional feedback here_"
 2. **All tasks are to be performed on the A3 dashboard**. I will not be asking you to make observations on the A2 dashboard, but it is included in the setup so that you may interact with it if you are interested. 
-   * You can access the A2 dashboard interface by pressing the button labeled "**View A2**."
+   * You can access the A2 dashboard interface by visiting the page: http://127.0.0.1:8000/a2
    * If you have any feedback after interacting with both the A3 and A2 dashboards, please include it in the last prompt on the form as well.
 3. For your convenience, there are buttons at the top right of the screen that can record when you start and end each task. _This information is important to understand how long each task took, so **please use these controls during the evaluation**._
   
