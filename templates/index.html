@@ -211,6 +211,7 @@
 
     // Call initialize() to initialize the page with our default query.
     initialize().then(data => {
+        console.log(data);
         mn = data.properties.stateMin;
         mx = data.properties.stateMax;
         startDate = data.properties.dateMin;
