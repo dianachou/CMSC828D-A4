@@ -346,6 +346,9 @@ def get_server_data():
     records = cursor.fetchall()
     max_count = [dict(zip(["total", "count"], rows)) for rows in records]
 
+    if state_count_query == []:
+        state_count_query = [{'state': '', 'count': 0}]
+
     #################### DATA FOR RESPONSE ####################
 
     data = {
